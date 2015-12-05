@@ -45,8 +45,7 @@ public class Bluetooth extends BroadcastReceiver implements IBluetoothConnect, I
 
     private static ArrayList<IBluetoothHandler> bluetoothHandlers = new ArrayList<IBluetoothHandler>();
 
-    private boolean connecting = false;
-    private boolean connected = false;
+    ConnectionState connectionState = ConnectionState.NOT_CONNECTED;
 
     /*
         Constructor of the class.
@@ -83,7 +82,7 @@ public class Bluetooth extends BroadcastReceiver implements IBluetoothConnect, I
         mBlueToothAdapter.cancelDiscovery();
         connectToDevice = new ConnectThread(device,this);
         connectToDevice.start();
-        connecting = true;
+        connectionState = ConnectionState.CONNECTING;
     }
 
     public void disconnect()
@@ -94,7 +93,7 @@ public class Bluetooth extends BroadcastReceiver implements IBluetoothConnect, I
         if (connectToDevice != null)
             connectToDevice.cancel();
 
-        connected = false;
+        connectionState = ConnectionState.NOT_CONNECTED;
     }
 
     /*
@@ -237,15 +236,13 @@ public class Bluetooth extends BroadcastReceiver implements IBluetoothConnect, I
         System.out.println("Connection established!");
         connectedDevice = new ConnectedThread(btSocket,this);
         connectedDevice.start();
-        connecting = false;
-        connected = true;
+        connectionState = ConnectionState.CONNECTED;
     }
 
     @Override
     public void connectionFailed(String cause) {
         System.out.println("Connection failed! Cause : " + cause);
-        connecting = false;
-        connected = false;
+        connectionState = ConnectionState.FAILED;
     }
 
     @Override
@@ -256,7 +253,7 @@ public class Bluetooth extends BroadcastReceiver implements IBluetoothConnect, I
 
     @Override
     public void communicationFailure(String cause) {
-
+        connectionState = ConnectionState.FAILED;
     }
 
     public void sendData(byte[] data)
